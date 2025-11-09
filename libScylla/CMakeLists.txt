@@ -51,6 +51,14 @@ elseif(UNIX)
     )
 endif()
 
+# Enhanced features
+set(LIBSCYLLA_ENHANCED_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/ParallelIATScanner.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ParallelIATScanner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cache.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cache.cpp
+)
+
 set(LIBSCYLLA_CORE_HEADERS
     ${SCYLLA_SRC_DIR}/ApiReader.h
     ${SCYLLA_SRC_DIR}/Architecture.h
@@ -85,6 +93,7 @@ if(BUILD_SHARED_LIB)
         ${LIBSCYLLA_CORE_SOURCES}
         ${LIBSCYLLA_CORE_HEADERS}
         ${LIBSCYLLA_PLATFORM_SOURCES}
+        ${LIBSCYLLA_ENHANCED_SOURCES}
     )
 
     target_compile_definitions(ScyllaLib PRIVATE
@@ -111,6 +120,7 @@ if(BUILD_STATIC_LIB)
         ${LIBSCYLLA_CORE_SOURCES}
         ${LIBSCYLLA_CORE_HEADERS}
         ${LIBSCYLLA_PLATFORM_SOURCES}
+        ${LIBSCYLLA_ENHANCED_SOURCES}
     )
 
     set_target_properties(ScyllaLibStatic PROPERTIES
