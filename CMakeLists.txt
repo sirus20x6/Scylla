@@ -19,6 +19,7 @@ endif()
 
 # Options
 option(BUILD_GUI "Build the GUI application (Windows/Wine only)" ON)
+option(BUILD_IMGUI_GUI "Build the Dear ImGui GUI (cross-platform)" ON)
 option(BUILD_CLI "Build the command-line interface" ON)
 option(BUILD_SHARED_LIB "Build Scylla as a shared library" ON)
 option(BUILD_STATIC_LIB "Build Scylla as a static library" ON)
@@ -95,6 +96,11 @@ if(BUILD_CLI)
     add_subdirectory(ScyllaCLI)
 endif()
 
+# Dear ImGui GUI (cross-platform)
+if(BUILD_IMGUI_GUI)
+    add_subdirectory(gui-imgui)
+endif()
+
 # Plugins
 add_subdirectory(Plugins)
 
@@ -141,6 +147,7 @@ message(STATUS "")
 message(STATUS "Configuration Summary:")
 message(STATUS "  Platform: ${SCYLLA_PLATFORM}")
 message(STATUS "  Build GUI: ${BUILD_GUI}")
+message(STATUS "  Build ImGui GUI: ${BUILD_IMGUI_GUI}")
 message(STATUS "  Build CLI: ${BUILD_CLI}")
 message(STATUS "  Build Shared Library: ${BUILD_SHARED_LIB}")
 message(STATUS "  Build Static Library: ${BUILD_STATIC_LIB}")
