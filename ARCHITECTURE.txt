@@ -1,0 +1,233 @@
+SCYLLA ARCHITECTURE - Component Relationships
+==============================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          SCYLLA APPLICATION                                 │
+│                      (Windows PE Import Rebuilder)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                              ┌──────────────┐
+                              │  main.cpp    │
+                              │ (Entrypoint) │
+                              └──────┬───────┘
+                                     │
+                    ┌────────────────┼────────────────┐
+                    │                                 │
+            ┌───────▼────────┐           ┌───────────▼─────────┐
+            │  GUI Mode      │           │   DLL Mode          │
+            │ (MainGui.cpp)  │           │  (FunctionExport.cpp)
+            └────────────────┘           └─────────────────────┘
+                    │
+        ┌───────────┼───────────┬──────────────┐
+        │           │           │              │
+        │      ┌────▼─┐  ┌──────▼───┐  ┌──────▼───┐
+        │      │ Log  │  │Options   │  │ About    │
+        │      │Dialog│  │ Dialog   │  │ Dialog   │
+        │      └──────┘  └──────────┘  └──────────┘
+        │
+        │
+    ┌───▼─────────────────────────────────────────────────────┐
+    │                  CORE FUNCTIONALITY LAYER               │
+    └───────────────────────────────────────────────────────────┘
+        │
+    ┌───┴──────────────────────────────────────────────────────┐
+    │                                                           │
+    
+    ┌─────────────────────┐  ┌─────────────────────┐  ┌──────────────────┐
+    │  PE File Handling   │  │  Process Access     │  │ Import Analysis  │
+    ├─────────────────────┤  ├─────────────────────┤  ├──────────────────┤
+    │ • PeParser          │  │ • OpenProcess       │  │ • ImportsHandling│
+    │ • PeRebuild         │  │ • ProcessAccessHelp │  │ • ApiReader      │
+    │ • FILE I/O          │  │ • ProcessLister     │  │ • FunctionExport │
+    │ • Section handling  │  │ • Memory read/write │  │ • Direct imports │
+    │ • Checksum update   │  │ • Thread control    │  │ • Function names │
+    └─────────────────────┘  └─────────────────────┘  └──────────────────┘
+    
+    ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
+    │  IAT Operations  │  │  Memory Dump      │  │ Plugin System        │
+    ├──────────────────┤  ├──────────────────┤  ├──────────────────────┤
+    │ • IATSearch      │  │ • DumpMemoryGui   │  │ • PluginLoader       │
+    │ • IATRefScan     │  │ • DumpSectionGui  │  │ • DllInjection       │
+    │ • Auto search    │  │ • Memory regions  │  │ • ImpREC compatible  │
+    │ • Reference scan │  │ • PE sections     │  │ • External plugins   │
+    └──────────────────┘  └──────────────────┘  └──────────────────────┘
+    
+    ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
+    │ Disassembler     │  │ Configuration    │  │ Tree/Export          │
+    ├──────────────────┤  ├──────────────────┤  ├──────────────────────┤
+    │ • DisassemblerGui│  │ • ConfigHolder   │  │ • TreeImportExport   │
+    │ • diStorm engine │  │ • INI file I/O   │  │ • XML save/load      │
+    │ • Pattern match  │  │ • Settings cache │  │ • Multi-tree widget  │
+    │ • Instruction    │  │ • System info    │  │ • HexEdit viewer     │
+    │   decoding       │  │                  │  │                      │
+    └──────────────────┘  └──────────────────┘  └──────────────────────┘
+
+    ┌────────────────────────────────────────────────────────────────┐
+    │                 UTILITY & SUPPORT LAYER                        │
+    ├────────────────────────────────────────────────────────────────┤
+    │  • Logger.cpp (File & Window logging)                          │
+    │  • NativeWinApi.h (NT kernel API wrappers)                     │
+    │  • Architecture.h (x86 vs x64 macros)                          │
+    │  • SystemInformation.cpp (OS detection)                        │
+    │  • DeviceNameResolver.cpp (Path resolution)                    │
+    │  • StringConversion.cpp (ANSI/Unicode conversion)              │
+    └────────────────────────────────────────────────────────────────┘
+
+    ┌────────────────────────────────────────────────────────────────┐
+    │                  THIRD-PARTY DEPENDENCIES                      │
+    ├────────────────────────────────────────────────────────────────┤
+    │  • WTL v8 (GUI framework, header-only)                         │
+    │  • diStorm3 (Disassembly engine, static library)               │
+    │  • tinyxml (XML parsing, static library)                       │
+    └────────────────────────────────────────────────────────────────┘
+
+    ┌────────────────────────────────────────────────────────────────┐
+    │              WINDOWS RUNTIME DEPENDENCIES                      │
+    ├────────────────────────────────────────────────────────────────┤
+    │  • kernel32.dll (Base API)                                     │
+    │  • ntdll.dll (NT API layer)                                    │
+    │  • Psapi.dll (Process API)                                     │
+    │  • Shlwapi.dll (Shell Utilities)                               │
+    │  • User32.dll, Gdi32.dll (GUI)                                 │
+    └────────────────────────────────────────────────────────────────┘
+
+
+DATA FLOW - Import Reconstruction Workflow
+============================================
+
+    User Action (GUI)
+           │
+           ├─► Load Process  ──┐
+           │                   │
+           ├─► Open PE File ──┤
+           │                  ├──► Process Analysis
+           ├─► Memory Dump ───┤
+           │                   │
+           └─► Get Imports ───┘
+                    │
+                    ▼
+        ┌─────────────────────────┐
+        │ ProcessAccessHelp       │
+        │ - Open target process   │
+        │ - Read memory           │
+        │ - Get module list       │
+        └────────┬────────────────┘
+                 │
+                 ▼
+        ┌─────────────────────────┐
+        │ PeParser                │
+        │ - Parse PE headers      │
+        │ - Extract sections      │
+        │ - Detect architecture   │
+        └────────┬────────────────┘
+                 │
+                 ▼
+        ┌─────────────────────────┐
+        │ IATSearch               │
+        │ - Scan for IAT entries  │
+        │ - Auto-search patterns  │
+        │ - Reference analysis    │
+        └────────┬────────────────┘
+                 │
+                 ▼
+        ┌─────────────────────────┐
+        │ ApiReader               │
+        │ - Load system DLLs      │
+        │ - Extract API names     │
+        │ - Match imports         │
+        └────────┬────────────────┘
+                 │
+                 ▼
+        ┌─────────────────────────┐
+        │ ImportsHandling         │
+        │ - Validate imports      │
+        │ - Filter results        │
+        │ - Display in GUI tree   │
+        └────────┬────────────────┘
+                 │
+                 ▼
+        ┌─────────────────────────┐
+        │ PeRebuild               │
+        │ - Create new IAT        │
+        │ - Update PE headers     │
+        │ - Write fixed PE file   │
+        └─────────────────────────┘
+
+
+CLASS HIERARCHY (Key Components)
+==================================
+
+CDialogImpl<MainGui>
+├── CWinDataExchange<MainGui>
+├── CDialogResize<MainGui>
+└── CMessageFilter
+
+MainGui (Main window)
+├── ImportsHandling (Import management)
+│   └── ProcessAccessHelp (Static helper)
+│       └── ModuleInfo, ApiInfo (Data structures)
+├── IATSearch (IAT pattern finding)
+├── IATReferenceScan (Reference scanning)
+├── ProcessLister (Process enumeration)
+├── PickDllGui (DLL selection dialog)
+├── DumpMemoryGui (Memory dump dialog)
+├── DumpSectionGui (Section dump dialog)
+├── DisassemblerGui (Disassembly viewer)
+├── PeParser (PE file parsing)
+└── PeRebuild (PE reconstruction)
+
+
+FILES ORGANIZATION BY FUNCTIONALITY
+====================================
+
+GUI Components (*.cpp/h):
+- MainGui.cpp/h         - Main application window
+- AboutGui.cpp/h        - About dialog
+- OptionsGui.cpp/h      - Options dialog
+- DonateGui.cpp/h       - Donation dialog
+- PickDllGui.cpp/h      - DLL picker dialog
+- PickApiGui.cpp/h      - API selection dialog
+- DumpMemoryGui.cpp/h   - Memory dump interface
+- DumpSectionGui.cpp/h  - Section dump interface
+- DisassemblerGui.cpp/h - Disassembly viewer
+
+Core Business Logic:
+- PeParser.cpp/h        - PE file parsing
+- PeRebuild.cpp/h       - PE rebuilding
+- ImportsHandling.cpp/h - Import management
+- ApiReader.cpp/h       - System API extraction
+- IATSearch.cpp/h       - IAT detection
+- IATReferenceScan.cpp/h- Import reference scanning
+- ImportRebuilder.cpp/h - Import table rebuilding
+
+System Access:
+- ProcessAccessHelp.cpp/h   - Process access abstraction
+- ProcessLister.cpp/h       - Process enumeration
+- NativeWinApi.cpp/h        - NT API wrappers
+- DllInjection.cpp/h        - Remote DLL injection
+
+Utilities:
+- Scylla.cpp/h          - Global initialization
+- Logger.cpp/h          - Logging system
+- Configuration.cpp/h   - Configuration values
+- ConfigurationHolder.cpp/h - Config file management
+- SystemInformation.cpp/h   - OS detection
+- DeviceNameResolver.cpp/h  - Path/device resolution
+- Architecture.cpp/h    - Platform detection
+- StringConversion.cpp/h- String conversions
+
+Plugin System:
+- PluginLoader.cpp/h    - ImpREC plugin loading
+- DllInjectionPlugin.cpp/h - Plugin DLL injection
+
+Data Export/Import:
+- FunctionExport.cpp/h  - DLL export functions
+- TreeImportExport.cpp/h- XML tree I/O
+
+Supporting Libraries:
+- multitree.h           - Multi-level tree widget
+- hexedit.h             - Hex editor widget
+
+Resource Files:
+- MainGui.rc            - Dialog resources
+- *.ico                 - Application icons

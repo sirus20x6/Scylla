@@ -1,0 +1,325 @@
+SCYLLA WINDOWS DEPENDENCIES & PORTABILITY ANALYSIS
+====================================================
+
+CRITICAL WINDOWS-SPECIFIC COMPONENTS
+=====================================
+
+1. PROCESS MANIPULATION (ProcessAccessHelp.cpp)
+   ==========================================
+   
+   Key Windows APIs Used:
+   - OpenProcess()             → Only Windows function to open external processes
+   - ReadProcessMemory()       → Windows-specific cross-process memory access
+   - WriteProcessMemory()      → Windows-specific cross-process memory write
+   - GetProcessModules()       → Uses EnumProcessModules (PSAPI)
+   - CreateRemoteThread()      → Windows-only thread creation in another process
+   - SuspendProcess()          → Windows thread suspension
+   - ResumeProcess()           → Windows thread resumption
+   - TerminateProcess()        → Windows process termination
+   - CreateFileMappingA/W()    → Windows file mapping APIs
+   - MapViewOfFile()           → Windows memory mapping
+   - VirtualQueryEx()          → Windows memory query
+   
+   Why Not Portable:
+   - No equivalent on Linux/macOS; would need ptrace (Linux) or task_for_pid (macOS)
+   - Different privilege models across platforms
+   - Different memory layout/protection schemes
+   
+   Code Example:
+   ```cpp
+   // ProcessAccessHelp.cpp - Windows-only
+   HANDLE ProcessAccessHelp::hProcess = NULL;
+   
+   bool ProcessAccessHelp::openProcessHandle(DWORD dwPID)
+   {
+       hProcess = OpenProcess(
+           PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
+           FALSE,
+           dwPID
+       );
+       return hProcess != NULL;
+   }
+   ```
+
+
+2. PE FILE FORMAT (PeParser.cpp, PeRebuild.cpp)
+   =====================================
+   
+   Windows Structures Used:
+   - IMAGE_DOS_HEADER          → DOS/Windows file header
+   - IMAGE_NT_HEADERS          → PE format headers
+   - IMAGE_FILE_HEADER         → File header with architecture
+   - IMAGE_OPTIONAL_HEADER     → Optional header with DataDirectories
+   - IMAGE_SECTION_HEADER      → Section information
+   - IMAGE_IMPORT_DESCRIPTOR   → Import table entries
+   - IMAGE_THUNK_DATA          → Import address table entries
+   - IMAGE_RELOCATION          → Base relocation entries
+   - IMAGE_EXPORT_DIRECTORY    → Export table
+   
+   Why Not Portable:
+   - PE format is Windows-exclusive (invented by Microsoft)
+   - Linux uses ELF format with different structure
+   - macOS uses Mach-O format with different structure
+   - Fundamentally different binary formats
+   
+   Code Example:
+   ```cpp
+   // PeParser.h - Windows PE structures
+   #include <windows.h>
+   
+   class PeFileSection {
+       IMAGE_SECTION_HEADER sectionHeader;  // ← Windows structure
+       BYTE * data;
+       DWORD dataSize;
+   };
+   ```
+
+
+3. NATIVE WINDOWS API (NativeWinApi.h)
+   ================================
+   
+   Direct NT Kernel APIs:
+   - NtOpenProcess()           → Native API for process opening
+   - NtQueryInformationProcess() → Process info query
+   - NtQuerySystemInformation() → System information
+   - NtCreateThreadEx()        → Native thread creation
+   - RtlInitUnicodeString()    → Unicode string handling
+   - RtlGetVersion()           → OS version detection
+   
+   Windows NT Types:
+   - NTSTATUS                  → NT error codes
+   - UNICODE_STRING            → NT Unicode representation
+   - OBJECT_ATTRIBUTES         → NT object attributes
+   - SYSTEM_INFORMATION_CLASS  → NT info classes
+   
+   Why Not Portable:
+   - These are undocumented Windows NT internals
+   - Only work on Windows NT/2000/XP/Vista/7+
+   - No equivalents on other operating systems
+   
+   Code Example:
+   ```cpp
+   // NativeWinApi.h - Windows NT specific
+   typedef enum _SYSTEM_INFORMATION_CLASS {
+       SystemBasicInformation,
+       SystemProcessInformation,
+       SystemPerformanceInformation,
+       // ... only on Windows NT
+   } SYSTEM_INFORMATION_CLASS;
+   ```
+
+
+4. DLL INJECTION (DllInjection.cpp)
+   ==========================
+   
+   Windows APIs Used:
+   - CreateRemoteThread()      → Create thread in remote process
+   - VirtualAllocEx()          → Allocate memory in remote process
+   - WriteProcessMemory()      → Write DLL path to remote memory
+   - GetProcAddress()          → Get kernel32.LoadLibraryW address
+   - LoadLibraryA/W()          → Load DLL by name
+   - FreeLibrary()             → Unload DLL
+   
+   Why Not Portable:
+   - Remote thread creation is Windows-specific
+   - No equivalent mechanism on Unix/Linux
+   - Different security models prevent this on other OSes
+   
+   Code Example:
+   ```cpp
+   // DllInjection.cpp - Windows-only injection
+   CreateRemoteThread(
+       targetProcess,
+       NULL,
+       0,
+       (LPTHREAD_START_ROUTINE)LoadLibraryW,
+       dllPathInRemoteMemory,
+       0,
+       &threadId
+   );
+   ```
+
+
+5. UNICODE & STRING HANDLING
+   =========================
+   
+   Windows Types Used:
+   - WCHAR                     → Wide character (UTF-16)
+   - LPWSTR                    → Wide string pointer
+   - CHAR                      → ANSI character
+   - LPSTR                     → ANSI string pointer
+   - _tWinMain()              → Unicode-aware entry point
+   - wcscpy_s(), wcscat_s()    → Windows-safe wide string functions
+   - swprintf_s()              → Windows-safe wide sprintf
+   
+   Why Not Portable:
+   - WCHAR is fixed-width UTF-16 on Windows
+   - Unix/Linux use UTF-8 by default
+   - Different string safety functions (_s versions are Windows MSVCRT)
+   - TCHAR abstraction is Windows-centric
+   
+   Code Example:
+   ```cpp
+   // main.cpp - Windows Unicode entry point
+   int APIENTRY _tWinMain(
+       HINSTANCE hInstance,
+       HINSTANCE hPrevInstance,
+       LPTSTR lpCmdLine,
+       int nCmdShow)
+   ```
+
+
+6. GUI FRAMEWORK (MainGui.cpp, WTL headers)
+   ==================================
+   
+   Windows Classes Used:
+   - CDialogImpl<>             → WTL dialog base class
+   - CWindow                   → Window wrapper
+   - HWND                      → Window handle
+   - HINSTANCE                 → Module handle
+   - WM_* messages            → Windows message constants
+   - DDX_CONTROL              → Data exchange macros
+   - MSG_WM_*                 → Message handler macros
+   - DLGRESIZE_CONTROL        → Dynamic resize control
+   
+   Why Not Portable:
+   - WTL is Windows-only (built on Windows ATL/COM)
+   - Window handles are Windows-specific
+   - Message-based architecture is Windows-centric
+   - Would need complete GUI rewrite for cross-platform
+   
+   Code Example:
+   ```cpp
+   // MainGui.h - Windows dialog class
+   class MainGui : public CDialogImpl<MainGui>,
+                   public CWinDataExchange<MainGui>,
+                   public CDialogResize<MainGui>
+   {
+       enum { IDD = IDD_DLG_MAIN };
+       
+       BEGIN_MSG_MAP_EX(MainGui)
+           MSG_WM_INITDIALOG(OnInitDialog)
+           MSG_WM_DESTROY(OnDestroy)
+       END_MSG_MAP()
+   };
+   ```
+
+
+ARCHITECTURE-SPECIFIC PATTERNS
+==============================
+
+1. X86 vs X64 Compilation:
+   
+   ```cpp
+   // Architecture.h - Compile-time platform detection
+   #ifdef _WIN64
+       #define PRINTF_DWORD_PTR_S "%I64X"      // 64-bit format
+       #define ARCHITECTURE_S "x64"
+   #else
+       #define PRINTF_DWORD_PTR_S "%X"         // 32-bit format
+       #define ARCHITECTURE_S "x86"
+   #endif
+   ```
+
+2. Instruction Decoding:
+   
+   ```cpp
+   // ProcessAccessHelp.h - diStorm configuration
+   #ifdef _WIN64
+       static const _DecodeType dt = Decode64Bits;   // 64-bit disasm
+   #else
+       static const _DecodeType dt = Decode32Bits;   // 32-bit disasm
+   #endif
+   ```
+
+3. Register Context (exception handling):
+   
+   ```cpp
+   // main.cpp - Different register names per architecture
+   #ifdef _WIN64
+       swprintf_s(registerInfo, L"rax=0x%p, rbx=0x%p, ...",
+           ExceptionInfo->ContextRecord->Rax,
+           ExceptionInfo->ContextRecord->Rbx, ...);
+   #else
+       swprintf_s(registerInfo, L"eax=0x%p, ebx=0x%p, ...",
+           ExceptionInfo->ContextRecord->Eax,
+           ExceptionInfo->ContextRecord->Ebx, ...);
+   #endif
+   ```
+
+
+IMPLICIT WINDOWS ASSUMPTIONS
+=============================
+
+1. File Paths:
+   - Always use backslash (\\) separators
+   - No forward slash (/) support
+   - Registry access (HKEY_LOCAL_MACHINE)
+   - Device path format (\\Device\\HarddiskVolume1)
+
+2. Case Sensitivity:
+   - File system is case-insensitive (NTFS)
+   - No consideration for case-sensitive file systems (Linux ext4)
+
+3. Process Concepts:
+   - Assumes Windows process model
+   - Different thread model vs Unix/Linux
+   - Uses Windows security descriptors
+
+4. Memory Layout:
+   - Assumes Windows memory protection model
+   - Uses PAGE_EXECUTE_READ constants (Windows-specific)
+   - Different virtual memory schemes than Unix
+
+5. Configuration:
+   - Uses INI files in Windows %APPDATA% or local directories
+   - No consideration for Unix ~/.config or /etc
+
+6. Time/Precision:
+   - Uses Windows FILETIME format
+   - Different precision than Unix epoch
+
+
+CODE REUSE POTENTIAL ANALYSIS
+==============================
+
+Potentially Portable Components:
+- tinyxml (already cross-platform capable)
+- diStorm (x86/x64 instruction decoding is cross-platform)
+- Basic utility functions (logging, string conversion)
+
+Non-Portable Components (Would Require Rewrite):
+- GUI (WTL) → Would need Qt, GTK, wxWidgets, Cocoa
+- Process access → Would need ptrace (Unix) or task_for_pid (macOS)
+- PE file handling → Core functionality, Windows-specific format
+- DLL injection → Would need different mechanisms per OS
+- Registry access → Would need different config system per OS
+- Native API layer → Would need OS-specific replacements
+
+Estimated Effort for Full Cross-Platform:
+- GUI rewrite: 40% of effort
+- Process access abstraction: 30% of effort
+- PE format handling: 10% (if supporting non-PE formats)
+- Build system changes: 10% (CMake/Ninja instead of MSBuild)
+- Remaining platform-specific code: 10%
+
+
+BRANCH INFORMATION
+==================
+
+Current Branch: claude/modernize-scylla-crossplatform-011CUwaQMtFiD8SgCiUEscZ3
+
+This branch is intended for:
+- Modernizing the codebase
+- Adding cross-platform support
+- Updating build system (likely CMake)
+- Abstracting Windows-specific functionality
+- Adding platform abstraction layers
+
+Key Changes Needed:
+1. Platform abstraction layer for OS-specific calls
+2. GUI framework replacement (Qt, GTK, wxWidgets, or Cocoa)
+3. Build system migration (CMake)
+4. Conditional compilation for multi-platform
+5. New file path handling abstraction
+6. Process access abstraction (ptrace/task_for_pid)
