@@ -1,0 +1,174 @@
+{
+  "version": "1.0",
+  "last_updated": "2024-11-09",
+  "signatures": [
+    {
+      "name": "UPX",
+      "section_names": ["UPX0", "UPX1", "UPX2", "UPX!"],
+      "string_signatures": ["UPX!"],
+      "entry_pattern": "60 BE ?? ?? ?? ?? 8D BE",
+      "entry_mask": "FF FF 00 00 00 00 FF FF",
+      "min_entropy": 6.5,
+      "max_entropy": 8.0,
+      "min_imports": 0,
+      "max_imports": 20,
+      "description": "UPX - Ultimate Packer for eXecutables",
+      "versions": {
+        "3.96": "Standard UPX 3.96",
+        "3.95": "Standard UPX 3.95",
+        "3.94": "Standard UPX 3.94"
+      },
+      "references": [
+        "https://upx.github.io/",
+        "https://github.com/upx/upx"
+      ]
+    },
+    {
+      "name": "VMProtect",
+      "section_names": [".vmp0", ".vmp1", ".vmp2", "vmp0", "vmp1"],
+      "string_signatures": ["VMProtect", "Protected by VMProtect"],
+      "min_entropy": 7.2,
+      "max_entropy": 8.0,
+      "min_imports": 1,
+      "max_imports": 50,
+      "common_imports": ["LoadLibraryA", "GetProcAddress", "VirtualProtect"],
+      "description": "VMProtect - Virtualization-based protection",
+      "characteristics": {
+        "virtualized_code": true,
+        "anti_debug": true,
+        "mutation_engine": true
+      }
+    },
+    {
+      "name": "Themida",
+      "section_names": [".themida", "themida", ".winlic", "winlicense"],
+      "string_signatures": ["Themida", "Oreans", "WinLicense"],
+      "min_entropy": 7.5,
+      "max_entropy": 8.0,
+      "min_imports": 1,
+      "max_imports": 30,
+      "description": "Themida/WinLicense by Oreans Technologies",
+      "characteristics": {
+        "virtualization": true,
+        "anti_dump": true,
+        "anti_debug": true
+      }
+    },
+    {
+      "name": "ASPack",
+      "section_names": [".aspack", ".adata", "ASPack"],
+      "string_signatures": ["ASPack"],
+      "entry_pattern": "60 E8 03 00 00 00 E9 EB",
+      "entry_mask": "FF FF FF FF FF FF FF FF",
+      "min_entropy": 6.8,
+      "max_entropy": 8.0,
+      "description": "ASPack - Alexey Solodovnikov's Packer"
+    },
+    {
+      "name": "PECompact",
+      "section_names": [".pec1", ".pec2", "PEC2", "PECompact"],
+      "string_signatures": ["PECompact", "Bitsum"],
+      "min_entropy": 6.5,
+      "max_entropy": 8.0,
+      "min_imports": 5,
+      "max_imports": 40,
+      "description": "PECompact by Bitsum LLC"
+    },
+    {
+      "name": "Armadillo",
+      "section_names": [".arma", "armadillo"],
+      "string_signatures": ["Armadillo", "Silicon Realms"],
+      "min_entropy": 6.0,
+      "max_entropy": 7.8,
+      "description": "Armadillo Software Protection System"
+    },
+    {
+      "name": "Enigma Protector",
+      "section_names": [".enigma1", ".enigma2", "enigma"],
+      "string_signatures": ["Enigma Protector", "The Enigma Protector"],
+      "min_entropy": 7.0,
+      "max_entropy": 8.0,
+      "min_imports": 5,
+      "max_imports": 50,
+      "description": "Enigma Protector by The Enigma Protector Developers Team"
+    },
+    {
+      "name": "Obsidium",
+      "section_names": [".obsidium", "obsidium"],
+      "string_signatures": ["Obsidium"],
+      "min_entropy": 7.2,
+      "max_entropy": 8.0,
+      "description": "Obsidium Software Protection"
+    },
+    {
+      "name": "MPRESS",
+      "section_names": [".MPRESS1", ".MPRESS2", "MPRESS"],
+      "string_signatures": ["MPRESS"],
+      "min_entropy": 6.8,
+      "max_entropy": 8.0,
+      "min_imports": 0,
+      "max_imports": 15,
+      "description": "MPRESS - Free high-performance packer"
+    },
+    {
+      "name": "PEtite",
+      "section_names": [".petite", "petite"],
+      "string_signatures": ["PEtite"],
+      "entry_pattern": "B8 ?? ?? ?? ?? 66 9C 60",
+      "entry_mask": "FF 00 00 00 00 FF FF FF",
+      "min_entropy": 6.5,
+      "max_entropy": 7.8,
+      "description": "PEtite by Ian Luck"
+    },
+    {
+      "name": "ASProtect",
+      "section_names": [".aspr", "ASProtect"],
+      "string_signatures": ["ASProtect"],
+      "min_entropy": 6.8,
+      "max_entropy": 8.0,
+      "description": "ASProtect - Advanced Software Protection"
+    },
+    {
+      "name": "Exe32Pack",
+      "section_names": ["Exe32Pac"],
+      "string_signatures": ["Exe32Pack"],
+      "min_entropy": 6.5,
+      "max_entropy": 7.8,
+      "description": "Exe32Pack"
+    },
+    {
+      "name": "Molebox",
+      "section_names": [".molebox"],
+      "string_signatures": ["MoleBox"],
+      "min_entropy": 6.8,
+      "max_entropy": 8.0,
+      "description": "MoleBox - Application virtualization"
+    },
+    {
+      "name": "Petite",
+      "section_names": [".petite"],
+      "min_entropy": 6.5,
+      "max_entropy": 7.8,
+      "description": "Petite Executable Compressor"
+    },
+    {
+      "name": "NsPack",
+      "section_names": [".nsp0", ".nsp1", ".nsp2"],
+      "string_signatures": ["NsPacK"],
+      "min_entropy": 6.8,
+      "max_entropy": 8.0,
+      "description": "NsPack - North Star PE Packer"
+    }
+  ],
+  "heuristic_thresholds": {
+    "high_entropy": 7.0,
+    "few_imports": 10,
+    "suspicious_score": 50
+  },
+  "notes": [
+    "Entropy values are based on Shannon entropy (0-8 bits)",
+    "Section names are case-insensitive substring matches",
+    "Entry patterns use ?? for wildcards",
+    "Signatures can be combined with heuristics for better detection"
+  ]
+}
