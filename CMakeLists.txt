@@ -7,6 +7,9 @@ project(Scylla
     LANGUAGES CXX C
 )
 
+# CMake module path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
 # C++ Standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,6 +30,14 @@ option(BUILD_PYTHON_BINDINGS "Build Python bindings (pybind11)" OFF)
 option(ENABLE_WINE_SUPPORT "Enable Wine-specific compatibility features" ON)
 option(BUILD_TESTS "Build test suite" OFF)
 
+# Platform-specific options
+if(UNIX AND NOT APPLE AND NOT WIN32)
+    # On Linux, default to using Wine libraries unless user overrides
+    option(USE_WINE_LIBRARIES "Use Wine development libraries for Windows API compatibility (Linux only)" ON)
+else()
+    set(USE_WINE_LIBRARIES OFF)
+endif()
+
 # Platform detection
 if(WIN32)
     set(SCYLLA_PLATFORM "Windows")
@@ -39,7 +50,30 @@ elseif(APPLE)
     add_compile_definitions(SCYLLA_MACOS)
 endif()
 
-# Wine detection
+# Wine library detection for Linux
+set(WINE_AVAILABLE OFF)
+if(USE_WINE_LIBRARIES AND UNIX AND NOT APPLE AND NOT WIN32)
+    find_package(Wine)
+
+    if(Wine_FOUND)
+        set(WINE_AVAILABLE ON)
+        add_compile_definitions(SCYLLA_USE_WINE)
+        message(STATUS "Wine libraries found - Windows API support enabled")
+        message(STATUS "  Wine version: ${WINE_VERSION}")
+        message(STATUS "  Wine include dirs: ${WINE_INCLUDE_DIRS}")
+        message(STATUS "  Wine library dir: ${WINE_LIBRARY_DIRS}")
+    else()
+        message(WARNING "Wine development libraries not found!")
+        message(WARNING "On Debian/Ubuntu, install with: sudo apt-get install wine-dev")
+        message(WARNING "On Fedora/RHEL, install with: sudo dnf install wine-devel")
+        message(WARNING "On Arch, install with: sudo pacman -S wine")
+        message(WARNING "")
+        message(WARNING "Without Wine libraries, Windows API functions will not be available.")
+        message(WARNING "Set -DUSE_WINE_LIBRARIES=OFF if you want to build without Wine support.")
+    endif()
+endif()
+
+# Wine compatibility for actual Wine builds
 if(ENABLE_WINE_SUPPORT AND WIN32)
     add_compile_definitions(SCYLLA_WINE_COMPAT)
 endif()
@@ -153,5 +187,11 @@ message(STATUS "  Build Shared Library: ${BUILD_SHARED_LIB}")
 message(STATUS "  Build Static Library: ${BUILD_STATIC_LIB}")
 message(STATUS "  Build Python Bindings: ${BUILD_PYTHON_BINDINGS}")
 message(STATUS "  Wine Support: ${ENABLE_WINE_SUPPORT}")
+if(UNIX AND NOT APPLE AND NOT WIN32)
+    message(STATUS "  Use Wine Libraries: ${USE_WINE_LIBRARIES}")
+    if(WINE_AVAILABLE)
+        message(STATUS "  Wine Version: ${WINE_VERSION}")
+    endif()
+endif()
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
 message(STATUS "")

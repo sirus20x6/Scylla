@@ -1,9 +1,9 @@
 # ScyllaGUI - Windows GUI application using WTL
 cmake_minimum_required(VERSION 3.15)
 
-# Only build on Windows/MinGW
-if(NOT WIN32 AND NOT MINGW)
-    message(FATAL_ERROR "ScyllaGUI can only be built on Windows or with MinGW cross-compilation")
+# Only build on Windows/MinGW or Linux with Wine
+if(NOT WIN32 AND NOT MINGW AND NOT WINE_AVAILABLE)
+    message(FATAL_ERROR "ScyllaGUI can only be built on Windows, with MinGW cross-compilation, or on Linux with Wine libraries")
 endif()
 
 # Source directory
@@ -77,13 +77,22 @@ else()
 endif()
 
 # Windows libraries
-target_link_libraries(ScyllaGUI PRIVATE
-    comctl32
-    comdlg32
-    psapi
-    dbghelp
-    shlwapi
-)
+if(WINE_AVAILABLE)
+    # Link Wine libraries on Linux
+    target_link_libraries(ScyllaGUI PRIVATE
+        ${WINE_LIBRARIES}
+    )
+    message(STATUS "ScyllaGUI: Using Wine libraries for Windows API support")
+else()
+    # Native Windows libraries
+    target_link_libraries(ScyllaGUI PRIVATE
+        comctl32
+        comdlg32
+        psapi
+        dbghelp
+        shlwapi
+    )
+endif()
 
 # Compile definitions
 target_compile_definitions(ScyllaGUI PRIVATE

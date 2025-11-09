@@ -13,8 +13,8 @@ set(LIBSCYLLA_CORE_SOURCES
     ${SCYLLA_SRC_DIR}/Scylla.cpp
 )
 
-# Windows-specific sources
-if(WIN32)
+# Windows-specific sources (also used on Linux with Wine libraries)
+if(WIN32 OR WINE_AVAILABLE)
     list(APPEND LIBSCYLLA_CORE_SOURCES
         ${SCYLLA_SRC_DIR}/ApiReader.cpp
         ${SCYLLA_SRC_DIR}/Architecture.cpp
@@ -96,8 +96,8 @@ set(LIBSCYLLA_CORE_HEADERS
     ${SCYLLA_SRC_DIR}/WindowsCompat.h
 )
 
-# Windows-specific headers
-if(WIN32)
+# Windows-specific headers (also used on Linux with Wine libraries)
+if(WIN32 OR WINE_AVAILABLE)
     list(APPEND LIBSCYLLA_CORE_HEADERS
         ${SCYLLA_SRC_DIR}/ApiReader.h
         ${SCYLLA_SRC_DIR}/Architecture.h
@@ -179,6 +179,13 @@ foreach(target ScyllaLib ScyllaLibStatic)
             ${CMAKE_CURRENT_SOURCE_DIR}/../tinyxml
         )
 
+        # Add Wine include directories if using Wine on Linux
+        if(WINE_AVAILABLE)
+            target_include_directories(${target} PUBLIC
+                ${WINE_INCLUDE_DIRS}
+            )
+        endif()
+
         # Link dependencies
         target_link_libraries(${target} PUBLIC
             diStorm
@@ -202,7 +209,7 @@ foreach(target ScyllaLib ScyllaLibStatic)
                 imagehlp
             )
         elseif(UNIX)
-            # For Linux/macOS we'll need to implement process access differently
+            # POSIX systems (Linux/macOS)
             target_compile_definitions(${target} PRIVATE
                 SCYLLA_POSIX
             )
@@ -214,6 +221,24 @@ foreach(target ScyllaLib ScyllaLibStatic)
             else()
                 # Linux specific libraries
                 target_link_libraries(${target} PUBLIC dl pthread)
+
+                # Add Wine libraries if available on Linux
+                if(WINE_AVAILABLE)
+                    # Wine provides Windows API compatibility
+                    target_compile_definitions(${target} PRIVATE
+                        _UNICODE
+                        UNICODE
+                        WIN32_LEAN_AND_MEAN
+                        NOMINMAX
+                    )
+
+                    # Link Wine libraries
+                    target_link_libraries(${target} PUBLIC
+                        ${WINE_LIBRARIES}
+                    )
+
+                    message(STATUS "${target}: Using Wine libraries for Windows API support")
+                endif()
             endif()
         endif()
 

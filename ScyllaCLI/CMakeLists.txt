@@ -38,6 +38,12 @@ endif()
 # Platform-specific libraries
 if(UNIX AND NOT APPLE)
     target_link_libraries(ScyllaCLI PRIVATE pthread dl)
+
+    # Add Wine libraries if available on Linux
+    if(WINE_AVAILABLE)
+        target_link_libraries(ScyllaCLI PRIVATE ${WINE_LIBRARIES})
+        message(STATUS "ScyllaCLI: Using Wine libraries for Windows API support")
+    endif()
 elseif(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     target_link_libraries(ScyllaCLI PRIVATE ${COREFOUNDATION_LIBRARY})
