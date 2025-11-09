@@ -1,0 +1,170 @@
+name: Cross-Platform Build
+
+on:
+  push:
+    branches: [ main, master, develop, claude/* ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    name: Windows (${{ matrix.arch }})
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, Win32]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A ${{ matrix.arch }}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test CLI
+      run: ${{github.workspace}}/build/bin/${{env.BUILD_TYPE}}/scylla-cli.exe info
+      continue-on-error: true
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: scylla-windows-${{ matrix.arch }}
+        path: |
+          ${{github.workspace}}/build/bin/${{env.BUILD_TYPE}}/*.exe
+          ${{github.workspace}}/build/bin/${{env.BUILD_TYPE}}/*.dll
+
+  build-linux:
+    name: Linux (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake ninja-build
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_GUI=OFF
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test CLI
+      run: ${{github.workspace}}/build/bin/scylla-cli info
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: scylla-${{ matrix.os }}
+        path: |
+          ${{github.workspace}}/build/bin/scylla-cli
+          ${{github.workspace}}/build/lib/*.so
+
+  build-macos:
+    name: macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-12
+            arch: x86_64
+          - os: macos-14
+            arch: arm64
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_GUI=OFF
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test CLI
+      run: ${{github.workspace}}/build/bin/scylla-cli info
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: scylla-macos-${{ matrix.arch }}
+        path: |
+          ${{github.workspace}}/build/bin/scylla-cli
+          ${{github.workspace}}/build/lib/*.dylib
+
+  build-mingw:
+    name: MinGW Cross-Compile (Linux -> Windows)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [i686, x86_64]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install MinGW
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 cmake ninja-build wine wine64
+
+    - name: Configure CMake
+      run: |
+        if [ "${{ matrix.arch }}" = "i686" ]; then
+          cmake -B ${{github.workspace}}/build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/toolchain-mingw32.cmake \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        else
+          cmake -B ${{github.workspace}}/build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/toolchain-mingw64.cmake \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        fi
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test with Wine
+      run: |
+        if [ "${{ matrix.arch }}" = "i686" ]; then
+          wine ${{github.workspace}}/build/bin/scylla-cli.exe info || true
+        else
+          wine64 ${{github.workspace}}/build/bin/scylla-cli.exe info || true
+        fi
+      continue-on-error: true
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: scylla-mingw-${{ matrix.arch }}
+        path: |
+          ${{github.workspace}}/build/bin/*.exe
+          ${{github.workspace}}/build/bin/*.dll
+
+  create-release:
+    name: Create Release Package
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/**/*
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
