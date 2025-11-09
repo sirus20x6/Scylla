@@ -3,7 +3,7 @@
  */
 
 #include "BatchCommand.h"
-#include "AnalyzeCommand.h"
+#include "Commands.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>

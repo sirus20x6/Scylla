@@ -64,7 +64,9 @@ bool ScyllaGUI::Initialize(int width, int height, const char* title) {
     pImpl->imguiContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+#ifdef IMGUI_HAS_DOCK
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+#endif
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(pImpl->window, true);
@@ -90,6 +92,7 @@ void ScyllaGUI::Run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+#ifdef IMGUI_HAS_DOCK
         // Create main docking space
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -116,6 +119,13 @@ void ScyllaGUI::Run() {
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
         ImGui::End();
+#else
+        // Simple menu bar without docking
+        if (ImGui::BeginMainMenuBar()) {
+            RenderMainMenu();
+            ImGui::EndMainMenuBar();
+        }
+#endif
 
         // Render tabs
         RenderProcessSelector();
@@ -805,8 +815,10 @@ void ApplyDarkTheme() {
     colors[ImGuiCol_TabActive] = ImVec4(0.23f, 0.23f, 0.24f, 1.00f);
     colors[ImGuiCol_TabUnfocused] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
     colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
+#ifdef IMGUI_HAS_DOCK
     colors[ImGuiCol_DockingPreview] = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
     colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+#endif
     colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
     colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
     colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);

@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <filesystem>
 #include <functional>
 #include <chrono>
