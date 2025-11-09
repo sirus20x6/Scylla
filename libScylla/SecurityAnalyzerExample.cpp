@@ -14,7 +14,7 @@ void BasicSecurityAnalysisExample() {
     SecurityAnalyzer analyzer;
 
     // Analyze a PE file
-    auto assessment = analyzer.Analyze("C:\\Windows\\System32\\notepad.exe");
+    auto assessment = analyzer.Analyze("notepad.exe");  // Use relative path for cross-platform compatibility
 
     std::cout << "\nSecurity Assessment:\n";
     std::cout << "  Score: " << assessment.securityScore << "/100\n";

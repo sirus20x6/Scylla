@@ -20,7 +20,7 @@ void Example_BasicSymbolResolution() {
     SymbolResolver resolver;
 
     // Load symbols for an executable
-    std::filesystem::path exePath = "C:\\Windows\\System32\\notepad.exe";
+    std::filesystem::path exePath = "notepad.exe";  // Use relative path for cross-platform compatibility
 
     std::cout << "Loading symbols for: " << exePath << "\n";
 
@@ -333,9 +333,9 @@ void Example_PDBExtraction() {
     std::cout << "=== Example 7: PDB Information Extraction ===\n\n";
 
     std::vector<std::filesystem::path> exeFiles = {
-        "C:\\Windows\\System32\\kernel32.dll",
-        "C:\\Windows\\System32\\ntdll.dll",
-        "C:\\Windows\\System32\\user32.dll"
+        "kernel32.dll",  // Use relative paths for cross-platform compatibility
+        "ntdll.dll",
+        "user32.dll"
     };
 
     std::cout << "Extracting PDB information from PE files:\n\n";

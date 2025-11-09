@@ -22,7 +22,7 @@ void ApiCacheExample() {
     auto& cacheManager = CacheManager::Instance();
     auto& apiCache = cacheManager.GetApiCache();
 
-    std::string dllPath = "C:\\Windows\\System32\\kernel32.dll";
+    std::string dllPath = "kernel32.dll";  // Use relative path for cross-platform compatibility
 
     // First access - cache miss (slow)
     auto start = std::chrono::high_resolution_clock::now();
@@ -91,7 +91,7 @@ void PEAnalysisCacheExample() {
     auto& cacheManager = CacheManager::Instance();
     auto& peCache = cacheManager.GetPECache();
 
-    std::string filePath = "C:\\Program Files\\sample.exe";
+    std::string filePath = "sample.exe";  // Use relative path for cross-platform compatibility
 
     // Check if analysis is cached
     PEAnalysisCacheEntry entry;
@@ -180,7 +180,7 @@ void PerformanceComparisonExample() {
     // Simulate analyzing 100 DLLs
     std::vector<std::string> dlls;
     for (int i = 0; i < 100; i++) {
-        dlls.push_back("C:\\Windows\\System32\\dll_" + std::to_string(i) + ".dll");
+        dlls.push_back("dll_" + std::to_string(i) + ".dll");  // Use relative paths for cross-platform compatibility
     }
 
     // First pass - no cache (cold)

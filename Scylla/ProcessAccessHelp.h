@@ -58,7 +58,9 @@ public:
 
 	const WCHAR * getFilename() const
 	{
-		const WCHAR* slash = wcsrchr(fullPath, L'\\');
+		const WCHAR* backslash = wcsrchr(fullPath, L'\\');
+		const WCHAR* forwardslash = wcsrchr(fullPath, L'/');
+		const WCHAR* slash = (backslash > forwardslash) ? backslash : forwardslash;
 		if(slash)
 		{
 			return slash+1;
