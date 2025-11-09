@@ -1,6 +1,6 @@
 #pragma once
 
-#include <windows.h>
+#include "WindowsCompat.h"
 #include <map>
 #include <hash_map>
 #include "ProcessAccessHelp.h"

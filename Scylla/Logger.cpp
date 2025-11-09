@@ -1,10 +1,12 @@
 #include "Logger.h"
 
-#include <shlwapi.h>
-//#include <fstream>
 #include <cstdio>
-#include <atlbase.h> 
+
+#ifdef _WIN32
+#include <shlwapi.h>
+#include <atlbase.h>
 #include <atlconv.h>
+#endif
 
 extern bool IsDllMode;
 

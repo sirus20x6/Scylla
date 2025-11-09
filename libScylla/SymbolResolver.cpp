@@ -1,4 +1,5 @@
 #include "SymbolResolver.h"
+#include "WindowsCompat.h"
 #include <algorithm>
 #include <cctype>
 #include <regex>
@@ -8,7 +9,6 @@
 #include <iomanip>
 
 #ifdef _WIN32
-#include <windows.h>
 #include <dbghelp.h>
 #pragma comment(lib, "dbghelp.lib")
 #else
@@ -741,7 +741,7 @@ std::map<std::string, uint64_t> SymbolResolver::GetStatistics() const {
 
     return {
         {"lookup_count", pImpl->lookupCount},
-        {"cache_hits", pacheStats.hits},
+        {"cache_hits", cacheStats.hits},
         {"cache_misses", cacheStats.misses},
         {"cache_entries", cacheStats.entryCount},
         {"symbol_count", pImpl->pdbInfo.symbolCount}
@@ -887,7 +887,7 @@ std::string FormatSymbolInfo(const SymbolInfo& info, bool verbose) {
             oss << "  Module: " << info.moduleName << "\n";
         }
     } else {
-        oss << info.demangledName.empty() ? info.name : info.demangledName;
+        oss << (info.demangledName.empty() ? info.name : info.demangledName);
         oss << " @ 0x" << std::hex << info.address << std::dec;
     }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <windows.h>
+#include "WindowsCompat.h"
 #include "ProcessLister.h"
 #include "Thunks.h"
 #include <tinyxml.h>

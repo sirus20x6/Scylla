@@ -47,6 +47,7 @@ constexpr uint32_t LC_DYSYMTAB = 0xB;
 constexpr uint32_t LC_LOAD_DYLIB = 0xC;
 constexpr uint32_t LC_ID_DYLIB = 0xD;
 constexpr uint32_t LC_LOAD_DYLINKER = 0xE;
+constexpr uint32_t LC_LOAD_WEAK_DYLIB = 0x80000018;
 constexpr uint32_t LC_SEGMENT_64 = 0x19;
 constexpr uint32_t LC_UUID = 0x1B;
 constexpr uint32_t LC_CODE_SIGNATURE = 0x1D;

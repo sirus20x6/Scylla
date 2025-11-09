@@ -1,8 +1,10 @@
 #pragma once
 
-#include <windows.h>
+#include "WindowsCompat.h"
 #include <vector>
+#ifdef _WIN32
 #include "DumpSectionGui.h"
+#endif
 
 class PeFileSection {
 public:

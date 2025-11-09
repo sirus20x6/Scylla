@@ -4,32 +4,38 @@ cmake_minimum_required(VERSION 3.15)
 # Source directory (original sources are in ../Scylla)
 set(SCYLLA_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../Scylla)
 
-# Core library sources (non-GUI)
+# Core library sources (cross-platform compatible)
 set(LIBSCYLLA_CORE_SOURCES
-    ${SCYLLA_SRC_DIR}/ApiReader.cpp
-    ${SCYLLA_SRC_DIR}/Architecture.cpp
-    ${SCYLLA_SRC_DIR}/Configuration.cpp
-    ${SCYLLA_SRC_DIR}/ConfigurationHolder.cpp
-    ${SCYLLA_SRC_DIR}/DeviceNameResolver.cpp
-    ${SCYLLA_SRC_DIR}/DllInjection.cpp
-    ${SCYLLA_SRC_DIR}/DllInjectionPlugin.cpp
-    ${SCYLLA_SRC_DIR}/FunctionExport.cpp
+    ${SCYLLA_SRC_DIR}/PeParser.cpp
+    ${SCYLLA_SRC_DIR}/ImportRebuilder.cpp
     ${SCYLLA_SRC_DIR}/IATReferenceScan.cpp
     ${SCYLLA_SRC_DIR}/IATSearch.cpp
-    ${SCYLLA_SRC_DIR}/ImportRebuilder.cpp
-    ${SCYLLA_SRC_DIR}/ImportsHandling.cpp
-    ${SCYLLA_SRC_DIR}/Logger.cpp
-    ${SCYLLA_SRC_DIR}/NativeWinApi.cpp
-    ${SCYLLA_SRC_DIR}/PeParser.cpp
-    ${SCYLLA_SRC_DIR}/PeRebuild.cpp
-    ${SCYLLA_SRC_DIR}/PluginLoader.cpp
-    ${SCYLLA_SRC_DIR}/ProcessAccessHelp.cpp
-    ${SCYLLA_SRC_DIR}/ProcessLister.cpp
     ${SCYLLA_SRC_DIR}/Scylla.cpp
-    ${SCYLLA_SRC_DIR}/StringConversion.cpp
-    ${SCYLLA_SRC_DIR}/SystemInformation.cpp
-    ${SCYLLA_SRC_DIR}/TreeImportExport.cpp
 )
+
+# Windows-specific sources
+if(WIN32)
+    list(APPEND LIBSCYLLA_CORE_SOURCES
+        ${SCYLLA_SRC_DIR}/ApiReader.cpp
+        ${SCYLLA_SRC_DIR}/Architecture.cpp
+        ${SCYLLA_SRC_DIR}/Configuration.cpp
+        ${SCYLLA_SRC_DIR}/ConfigurationHolder.cpp
+        ${SCYLLA_SRC_DIR}/DeviceNameResolver.cpp
+        ${SCYLLA_SRC_DIR}/DllInjection.cpp
+        ${SCYLLA_SRC_DIR}/DllInjectionPlugin.cpp
+        ${SCYLLA_SRC_DIR}/FunctionExport.cpp
+        ${SCYLLA_SRC_DIR}/ImportsHandling.cpp
+        ${SCYLLA_SRC_DIR}/Logger.cpp
+        ${SCYLLA_SRC_DIR}/NativeWinApi.cpp
+        ${SCYLLA_SRC_DIR}/PeRebuild.cpp
+        ${SCYLLA_SRC_DIR}/PluginLoader.cpp
+        ${SCYLLA_SRC_DIR}/ProcessAccessHelp.cpp
+        ${SCYLLA_SRC_DIR}/ProcessLister.cpp
+        ${SCYLLA_SRC_DIR}/StringConversion.cpp
+        ${SCYLLA_SRC_DIR}/SystemInformation.cpp
+        ${SCYLLA_SRC_DIR}/TreeImportExport.cpp
+    )
+endif()
 
 # Platform abstraction layer sources
 set(LIBSCYLLA_PLATFORM_SOURCES
@@ -82,32 +88,39 @@ set(LIBSCYLLA_ENHANCED_SOURCES
 )
 
 set(LIBSCYLLA_CORE_HEADERS
-    ${SCYLLA_SRC_DIR}/ApiReader.h
-    ${SCYLLA_SRC_DIR}/Architecture.h
-    ${SCYLLA_SRC_DIR}/Configuration.h
-    ${SCYLLA_SRC_DIR}/ConfigurationHolder.h
-    ${SCYLLA_SRC_DIR}/DeviceNameResolver.h
-    ${SCYLLA_SRC_DIR}/DllInjection.h
-    ${SCYLLA_SRC_DIR}/DllInjectionPlugin.h
-    ${SCYLLA_SRC_DIR}/FunctionExport.h
+    ${SCYLLA_SRC_DIR}/PeParser.h
+    ${SCYLLA_SRC_DIR}/ImportRebuilder.h
     ${SCYLLA_SRC_DIR}/IATReferenceScan.h
     ${SCYLLA_SRC_DIR}/IATSearch.h
-    ${SCYLLA_SRC_DIR}/ImportRebuilder.h
-    ${SCYLLA_SRC_DIR}/ImportsHandling.h
-    ${SCYLLA_SRC_DIR}/Logger.h
-    ${SCYLLA_SRC_DIR}/NativeWinApi.h
-    ${SCYLLA_SRC_DIR}/PeParser.h
-    ${SCYLLA_SRC_DIR}/PickApiGui.h
-    ${SCYLLA_SRC_DIR}/PickDllGui.h
-    ${SCYLLA_SRC_DIR}/PluginLoader.h
-    ${SCYLLA_SRC_DIR}/ProcessAccessHelp.h
-    ${SCYLLA_SRC_DIR}/ProcessLister.h
     ${SCYLLA_SRC_DIR}/Scylla.h
-    ${SCYLLA_SRC_DIR}/StringConversion.h
-    ${SCYLLA_SRC_DIR}/SystemInformation.h
-    ${SCYLLA_SRC_DIR}/Thunks.h
-    ${SCYLLA_SRC_DIR}/TreeImportExport.h
+    ${SCYLLA_SRC_DIR}/WindowsCompat.h
 )
+
+# Windows-specific headers
+if(WIN32)
+    list(APPEND LIBSCYLLA_CORE_HEADERS
+        ${SCYLLA_SRC_DIR}/ApiReader.h
+        ${SCYLLA_SRC_DIR}/Architecture.h
+        ${SCYLLA_SRC_DIR}/Configuration.h
+        ${SCYLLA_SRC_DIR}/ConfigurationHolder.h
+        ${SCYLLA_SRC_DIR}/DeviceNameResolver.h
+        ${SCYLLA_SRC_DIR}/DllInjection.h
+        ${SCYLLA_SRC_DIR}/DllInjectionPlugin.h
+        ${SCYLLA_SRC_DIR}/FunctionExport.h
+        ${SCYLLA_SRC_DIR}/ImportsHandling.h
+        ${SCYLLA_SRC_DIR}/Logger.h
+        ${SCYLLA_SRC_DIR}/NativeWinApi.h
+        ${SCYLLA_SRC_DIR}/PickApiGui.h
+        ${SCYLLA_SRC_DIR}/PickDllGui.h
+        ${SCYLLA_SRC_DIR}/PluginLoader.h
+        ${SCYLLA_SRC_DIR}/ProcessAccessHelp.h
+        ${SCYLLA_SRC_DIR}/ProcessLister.h
+        ${SCYLLA_SRC_DIR}/StringConversion.h
+        ${SCYLLA_SRC_DIR}/SystemInformation.h
+        ${SCYLLA_SRC_DIR}/Thunks.h
+        ${SCYLLA_SRC_DIR}/TreeImportExport.h
+    )
+endif()
 
 # Build shared library if requested
 if(BUILD_SHARED_LIB)

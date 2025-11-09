@@ -2,9 +2,10 @@
 #include "PeParser.h"
 #include "ProcessAccessHelp.h"
 #include <algorithm>
+#ifdef _WIN32
 #include <imagehlp.h>
-
 #pragma comment(lib, "Imagehlp.lib")
+#endif
 
 
 PeParser::PeParser()

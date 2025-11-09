@@ -1,6 +1,6 @@
 #pragma once
 
-#include <windows.h>
+#include "WindowsCompat.h"
 
 const int SCY_ERROR_SUCCESS = 0;
 const int SCY_ERROR_PROCOPEN = -1;

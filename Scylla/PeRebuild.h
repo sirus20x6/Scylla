@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+#include "WindowsCompat.h"
 #include <cstdlib>
 
 enum ReBaseErr

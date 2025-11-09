@@ -1,7 +1,10 @@
 #include "StringConversion.h"
-//#include <cstdlib>
-#include <atlbase.h> 
+#include <cstdlib>
+
+#ifdef _WIN32
+#include <atlbase.h>
 #include <atlconv.h>
+#endif
 
 const char* StringConversion::ToASCII(const wchar_t* str, char* buf, size_t bufsize)
 {

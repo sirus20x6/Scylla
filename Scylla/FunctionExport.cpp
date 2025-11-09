@@ -1,4 +1,4 @@
-#include <windows.h>
+#include "WindowsCompat.h"
 #include "PeParser.h"
 #include "ProcessAccessHelp.h"
 #include "Scylla.h"

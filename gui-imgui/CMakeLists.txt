@@ -10,7 +10,7 @@ if(NOT EXISTS "${IMGUI_DIR}/imgui.h")
     FetchContent_Declare(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG v1.90.0
+        GIT_TAG v1.90.9
     )
     FetchContent_MakeAvailable(imgui)
     set(IMGUI_DIR "${imgui_SOURCE_DIR}")

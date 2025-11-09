@@ -1,9 +1,6 @@
-#include <Windows.h>
-
-
 #pragma once
 
-#include <Windows.h>
+#include "WindowsCompat.h"
 #include <vector>
 #include <tchar.h>
 

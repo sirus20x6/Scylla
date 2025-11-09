@@ -13,6 +13,7 @@
 #include <future>
 #include <functional>
 #include <atomic>
+#include <queue>
 #include <cstdint>
 
 namespace Scylla {

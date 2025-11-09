@@ -1,6 +1,6 @@
 #pragma once
 
-#include <windows.h>
+#include "WindowsCompat.h"
 #include <vector>
 
 class Plugin {

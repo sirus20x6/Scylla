@@ -1,12 +1,14 @@
 #pragma once
 
-#include <windows.h>
+#include "WindowsCompat.h"
 #include <map>
 
-// WTL
+// WTL (Windows only)
+#ifdef _WIN32
 #include <atlbase.h>
 #include <atlapp.h>
 #include <atlctrls.h> // CTreeItem
+#endif
 
 class ImportThunk
 {

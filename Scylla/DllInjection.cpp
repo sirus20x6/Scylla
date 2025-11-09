@@ -1,5 +1,7 @@
 #include "DllInjection.h"
+#ifdef _WIN32
 #include <Psapi.h>
+#endif
 #include "Scylla.h"
 
 #include "NativeWinApi.h"

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <windows.h>
+#include "WindowsCompat.h"
+#ifdef _WIN32
 #include <tlhelp32.h>
+#endif
 #include <vector>
 
 /************************************************************************/
