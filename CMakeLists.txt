@@ -22,6 +22,7 @@ option(BUILD_GUI "Build the GUI application (Windows/Wine only)" ON)
 option(BUILD_CLI "Build the command-line interface" ON)
 option(BUILD_SHARED_LIB "Build Scylla as a shared library" ON)
 option(BUILD_STATIC_LIB "Build Scylla as a static library" ON)
+option(BUILD_PYTHON_BINDINGS "Build Python bindings (pybind11)" OFF)
 option(ENABLE_WINE_SUPPORT "Enable Wine-specific compatibility features" ON)
 option(BUILD_TESTS "Build test suite" OFF)
 
@@ -103,6 +104,11 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+# Python bindings
+if(BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
+endif()
+
 # Installation rules
 include(GNUInstallDirs)
 
@@ -138,6 +144,7 @@ message(STATUS "  Build GUI: ${BUILD_GUI}")
 message(STATUS "  Build CLI: ${BUILD_CLI}")
 message(STATUS "  Build Shared Library: ${BUILD_SHARED_LIB}")
 message(STATUS "  Build Static Library: ${BUILD_STATIC_LIB}")
+message(STATUS "  Build Python Bindings: ${BUILD_PYTHON_BINDINGS}")
 message(STATUS "  Wine Support: ${ENABLE_WINE_SUPPORT}")
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
 message(STATUS "")
