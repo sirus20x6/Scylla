@@ -9,6 +9,8 @@ set(SCYLLA_CLI_SOURCES
     InfoCommand.cpp
     DumpCommand.h
     DumpCommand.cpp
+    RebuildCommand.h
+    RebuildCommand.cpp
     Utilities.cpp
 )
 
