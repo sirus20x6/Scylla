@@ -15,6 +15,7 @@
 #include "../libScylla/Configuration.h"
 #include "../libScylla/Cache.h"
 #include "../libScylla/ParallelIATScanner.h"
+#include "../libScylla/SymbolResolver.h"
 
 namespace py = pybind11;
 
@@ -197,6 +198,180 @@ void bind_configuration(py::module& m) {
 }
 
 // ============================================================================
+// Symbol Resolution Bindings
+// ============================================================================
+
+void bind_symbol_resolution(py::module& m) {
+    using namespace scylla;
+
+    // Symbol Type enumeration
+    py::enum_<SymbolType>(m, "SymbolType")
+        .value("UNKNOWN", SymbolType::Unknown)
+        .value("FUNCTION", SymbolType::Function)
+        .value("DATA", SymbolType::Data)
+        .value("PUBLIC_SYMBOL", SymbolType::PublicSymbol)
+        .value("EXPORT", SymbolType::Export)
+        .value("IMPORT", SymbolType::Import)
+        .value("LABEL", SymbolType::Label)
+        .value("CONSTANT", SymbolType::Constant)
+        .value("PARAMETER", SymbolType::Parameter)
+        .value("LOCAL_VARIABLE", SymbolType::LocalVariable)
+        .value("TYPE_INFO", SymbolType::TypeInfo)
+        .value("VTABLE", SymbolType::VTable)
+        .export_values();
+
+    // SymbolInfo structure
+    py::class_<SymbolInfo>(m, "SymbolInfo")
+        .def(py::init<>())
+        .def_readwrite("name", &SymbolInfo::name)
+        .def_readwrite("demangled_name", &SymbolInfo::demangledName)
+        .def_readwrite("type", &SymbolInfo::type)
+        .def_readwrite("address", &SymbolInfo::address)
+        .def_readwrite("size", &SymbolInfo::size)
+        .def_readwrite("module_name", &SymbolInfo::moduleName)
+        .def_readwrite("source_file", &SymbolInfo::sourceFile)
+        .def_readwrite("line_number", &SymbolInfo::lineNumber)
+        .def_readwrite("is_mangled", &SymbolInfo::isMangled)
+        .def_readwrite("metadata", &SymbolInfo::metadata)
+        .def("__repr__", [](const SymbolInfo& s) {
+            std::string repr = "<SymbolInfo ";
+            repr += s.demangledName.empty() ? s.name : s.demangledName;
+            repr += " @ 0x" + std::to_string(s.address) + ">";
+            return repr;
+        });
+
+    // PDBInfo structure
+    py::class_<PDBInfo>(m, "PDBInfo")
+        .def(py::init<>())
+        .def_readwrite("path", &PDBInfo::path)
+        .def_readwrite("guid", &PDBInfo::guid)
+        .def_readwrite("age", &PDBInfo::age)
+        .def_readwrite("signature", &PDBInfo::signature)
+        .def_readwrite("is_loaded", &PDBInfo::isLoaded)
+        .def_readwrite("symbol_count", &PDBInfo::symbolCount)
+        .def("__repr__", [](const PDBInfo& p) {
+            return "<PDBInfo path='" + p.path + "' symbols=" +
+                   std::to_string(p.symbolCount) + ">";
+        });
+
+    // DemangleOptions structure
+    py::class_<DemangleOptions>(m, "DemangleOptions")
+        .def(py::init<>())
+        .def_readwrite("include_return_type", &DemangleOptions::includeReturnType)
+        .def_readwrite("include_parameters", &DemangleOptions::includeParameters)
+        .def_readwrite("include_namespace", &DemangleOptions::includeNamespace)
+        .def_readwrite("simplify_templates", &DemangleOptions::simplifyTemplates)
+        .def_readwrite("use_short_names", &DemangleOptions::useShortNames);
+
+    // SymbolSearchOptions structure
+    py::class_<SymbolSearchOptions>(m, "SymbolSearchOptions")
+        .def(py::init<>())
+        .def_readwrite("case_sensitive", &SymbolSearchOptions::caseSensitive)
+        .def_readwrite("exact_match", &SymbolSearchOptions::exactMatch)
+        .def_readwrite("search_demangled", &SymbolSearchOptions::searchDemangled)
+        .def_readwrite("filter_type", &SymbolSearchOptions::filterType)
+        .def_readwrite("max_results", &SymbolSearchOptions::maxResults);
+
+    // SymbolResolver class
+    py::class_<SymbolResolver>(m, "SymbolResolver")
+        .def(py::init<>())
+        .def("load_pdb", &SymbolResolver::LoadPDB,
+             "Load symbols from PDB file",
+             py::arg("pdb_path"))
+        .def("load_symbols_for_pe",
+             [](SymbolResolver& self, const std::string& pe_path) {
+                 return self.LoadSymbolsForPE(pe_path);
+             },
+             "Load symbols for PE file (auto-finds PDB)",
+             py::arg("pe_path"))
+        .def("load_symbols_for_module", &SymbolResolver::LoadSymbolsForModule,
+             "Load symbols for loaded module",
+             py::arg("module_base"), py::arg("module_path"))
+        .def("unload_symbols", &SymbolResolver::UnloadSymbols,
+             "Unload all symbols")
+        .def("get_symbol_by_address",
+             [](SymbolResolver& self, uint64_t address) {
+                 return self.GetSymbolByAddress(address);
+             },
+             "Get symbol info by address",
+             py::arg("address"))
+        .def("get_symbol_by_name", &SymbolResolver::GetSymbolByName,
+             "Get symbol info by name",
+             py::arg("name"))
+        .def("search_symbols",
+             [](SymbolResolver& self, const std::string& pattern) {
+                 return self.SearchSymbols(pattern);
+             },
+             "Search for symbols matching pattern",
+             py::arg("pattern"))
+        .def("search_symbols",
+             [](SymbolResolver& self, const std::string& pattern,
+                const SymbolSearchOptions& options) {
+                 return self.SearchSymbols(pattern, options);
+             },
+             "Search for symbols with options",
+             py::arg("pattern"), py::arg("options"))
+        .def("enumerate_symbols",
+             [](SymbolResolver& self, py::function callback) {
+                 return self.EnumerateSymbols([callback](const SymbolInfo& info) {
+                     py::gil_scoped_acquire acquire;
+                     return callback(info).cast<bool>();
+                 });
+             },
+             "Enumerate all symbols",
+             py::arg("callback"))
+        .def("get_source_location",
+             [](SymbolResolver& self, uint64_t address) {
+                 std::string source_file;
+                 uint32_t line_number;
+                 bool found = self.GetSourceLocation(address, source_file, line_number);
+                 if (found) {
+                     return py::make_tuple(source_file, line_number);
+                 }
+                 return py::make_tuple(py::str(""), py::int_(0));
+             },
+             "Get source file and line number for address",
+             py::arg("address"))
+        .def("get_pdb_info", &SymbolResolver::GetPDBInfo,
+             "Get PDB information")
+        .def("is_loaded", &SymbolResolver::IsLoaded,
+             "Check if symbols are loaded")
+        .def("get_module_base", &SymbolResolver::GetModuleBase,
+             "Get loaded module base address")
+        .def("enable_caching", &SymbolResolver::EnableCaching,
+             "Enable/disable symbol caching",
+             py::arg("enable"))
+        .def("clear_cache", &SymbolResolver::ClearCache,
+             "Clear symbol cache")
+        .def("get_statistics", &SymbolResolver::GetStatistics,
+             "Get statistics")
+        .def_static("demangle_name",
+                   [](const std::string& name) {
+                       return SymbolResolver::DemangleName(name);
+                   },
+                   "Demangle C++ symbol name",
+                   py::arg("mangled_name"))
+        .def_static("demangle_name",
+                   [](const std::string& name, const DemangleOptions& options) {
+                       return SymbolResolver::DemangleName(name, options);
+                   },
+                   "Demangle C++ symbol name with options",
+                   py::arg("mangled_name"), py::arg("options"))
+        .def_static("is_mangled_name", &SymbolResolver::IsMangledName,
+                   "Check if name is mangled",
+                   py::arg("name"))
+        .def_static("detect_mangling_scheme", &SymbolResolver::DetectManglingScheme,
+                   "Detect mangling scheme (MSVC, Itanium, GCC, or None)",
+                   py::arg("name"))
+        .def_static("extract_pdb_info_from_pe", &SymbolResolver::ExtractPDBInfoFromPE,
+                   "Extract PDB info from PE file",
+                   py::arg("pe_path"))
+        .def("__repr__", [](const SymbolResolver& r) {
+            return "<SymbolResolver loaded=" + std::string(r.IsLoaded() ? "true" : "false") + ">";
+        });
+}
+
+// ============================================================================
 // Main Module
 // ============================================================================
 
@@ -215,6 +390,9 @@ PYBIND11_MODULE(pyscylla, m) {
 
     py::module config_mod = m.def_submodule("config", "Configuration management");
     bind_configuration(config_mod);
+
+    py::module symbol_mod = m.def_submodule("symbols", "Symbol resolution and demangling");
+    bind_symbol_resolution(symbol_mod);
 
     // Utility functions
     m.def("version", []() {
