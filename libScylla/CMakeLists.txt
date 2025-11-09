@@ -59,6 +59,8 @@ set(LIBSCYLLA_ENHANCED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Cache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PackerDetector.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PackerDetector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.cpp
 )
 
 set(LIBSCYLLA_CORE_HEADERS
