@@ -11,6 +11,8 @@ set(SCYLLA_CLI_SOURCES
     DumpCommand.cpp
     RebuildCommand.h
     RebuildCommand.cpp
+    BatchCommand.h
+    BatchCommand.cpp
     Utilities.cpp
 )
 
