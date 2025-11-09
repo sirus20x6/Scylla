@@ -7,6 +7,8 @@ set(SCYLLA_CLI_SOURCES
     Commands.h
     AnalyzeCommand.cpp
     InfoCommand.cpp
+    DumpCommand.h
+    DumpCommand.cpp
     Utilities.cpp
 )
 
