@@ -65,6 +65,8 @@ set(LIBSCYLLA_ENHANCED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/SecurityAnalyzer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SymbolResolver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/SymbolResolver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DotNetAnalyzer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DotNetAnalyzer.cpp
 )
 
 set(LIBSCYLLA_CORE_HEADERS
