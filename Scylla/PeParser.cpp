@@ -1116,6 +1116,7 @@ bool PeParser::dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR 
 	return false;
 }
 
+#ifdef _WIN32
 bool PeParser::dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR * dumpFilePath, std::vector<PeSection> & sectionList)
 {
 	if (listPeSection.size() == sectionList.size())
@@ -1138,6 +1139,7 @@ bool PeParser::dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR 
 
 	return dumpProcess(modBase, entryPoint, dumpFilePath);
 }
+#endif
 
 void PeParser::setEntryPointVa(DWORD_PTR entryPoint)
 {

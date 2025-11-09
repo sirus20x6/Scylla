@@ -8,6 +8,13 @@
 #include <atlbase.h>
 #include <atlapp.h>
 #include <atlctrls.h> // CTreeItem
+#else
+// Stub type for non-Windows platforms
+class CTreeItem {
+public:
+	CTreeItem() : m_hTreeItem(nullptr) {}
+	void* m_hTreeItem;
+};
 #endif
 
 class ImportThunk

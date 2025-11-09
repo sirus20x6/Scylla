@@ -59,7 +59,9 @@ public:
 	void fixPeHeader();
 	void setDefaultFileAlignment();
 	bool dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR * dumpFilePath);
+#ifdef _WIN32
 	bool dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR * dumpFilePath, std::vector<PeSection> & sectionList);
+#endif
 
 	void setEntryPointVa(DWORD_PTR entryPoint);
 	void setEntryPointRva(DWORD entryPoint);

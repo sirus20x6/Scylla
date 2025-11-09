@@ -2,6 +2,9 @@
 
 #include "WindowsCompat.h"
 
+// Only define these on Windows - non-Windows platforms use WindowsCompat.h definitions
+#ifdef _WIN32
+
 #ifdef _WIN64
 
 #define ARCHITECTURE_S          "x64"
@@ -25,3 +28,5 @@
 #define PRINTF_DWORD_PTR_FULL TEXT(PRINTF_DWORD_PTR_FULL_S)
 #define PRINTF_DWORD_PTR_HALF TEXT(PRINTF_DWORD_PTR_HALF_S)
 #define PRINTF_INTEGER        TEXT(PRINTF_INTEGER_S)
+
+#endif // _WIN32

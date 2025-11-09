@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <stdexcept>
 #include <memory>
 
 namespace Scylla {
