@@ -522,22 +522,118 @@ void AnalyzeCommand::OutputJSON(const AnalysisResults& results, const std::strin
 }
 
 void AnalyzeCommand::OutputXML(const AnalysisResults& results, const std::string& outputFile) {
-    // Simplified XML output - would use TinyXML in full implementation
     std::ostringstream xml;
 
     xml << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     xml << "<analysis>\n";
     xml << "  <success>" << (results.success ? "true" : "false") << "</success>\n";
 
-    if (results.success) {
-        xml << "  <file>" << results.fileName << "</file>\n";
-        xml << "  <architecture>" << results.architecture << "</architecture>\n";
-        xml << "  <image_base>" << FormatHex(results.imageBase) << "</image_base>\n";
-        xml << "  <entry_point>" << FormatHex(results.entryPoint) << "</entry_point>\n";
-        // ... (more XML output would go here)
-    } else {
-        xml << "  <error>" << results.errorMessage << "</error>\n";
+    if (!results.success) {
+        xml << "  <error>" << EscapeXML(results.errorMessage) << "</error>\n";
+        xml << "</analysis>\n";
+
+        if (!outputFile.empty()) {
+            std::ofstream out(outputFile);
+            out << xml.str();
+            std::cout << "Results written to: " << outputFile << "\n";
+        } else {
+            std::cout << xml.str();
+        }
+        return;
     }
+
+    // File information
+    xml << "  <file_info>\n";
+    xml << "    <file>" << EscapeXML(results.fileName) << "</file>\n";
+    xml << "    <architecture>" << results.architecture << "</architecture>\n";
+    xml << "    <image_base>" << FormatHex(results.imageBase) << "</image_base>\n";
+    xml << "    <entry_point>" << FormatHex(results.entryPoint) << "</entry_point>\n";
+    xml << "    <file_size>" << results.fileSize << "</file_size>\n";
+    xml << "    <image_size>" << results.imageSize << "</image_size>\n";
+    xml << "    <entropy>" << std::fixed << std::setprecision(2) << results.totalEntropy << "</entropy>\n";
+    if (!results.packerDetected.empty()) {
+        xml << "    <packer>" << EscapeXML(results.packerDetected) << "</packer>\n";
+    }
+    xml << "  </file_info>\n";
+
+    // Sections
+    xml << "  <sections count=\"" << results.sections.size() << "\">\n";
+    for (const auto& section : results.sections) {
+        xml << "    <section>\n";
+        xml << "      <name>" << EscapeXML(section.name) << "</name>\n";
+        xml << "      <virtual_address>" << FormatHex(section.virtualAddress) << "</virtual_address>\n";
+        xml << "      <virtual_size>" << section.virtualSize << "</virtual_size>\n";
+        xml << "      <raw_size>" << section.rawSize << "</raw_size>\n";
+        xml << "      <characteristics>" << FormatHex(section.characteristics) << "</characteristics>\n";
+        xml << "      <executable>" << (section.executable ? "true" : "false") << "</executable>\n";
+        xml << "      <readable>" << (section.readable ? "true" : "false") << "</readable>\n";
+        xml << "      <writable>" << (section.writable ? "true" : "false") << "</writable>\n";
+        xml << "      <entropy>" << std::fixed << std::setprecision(2) << section.entropy << "</entropy>\n";
+        xml << "    </section>\n";
+    }
+    xml << "  </sections>\n";
+
+    // Security features
+    xml << "  <security>\n";
+    xml << "    <aslr>" << (results.security.aslr ? "true" : "false") << "</aslr>\n";
+    xml << "    <dep>" << (results.security.dep ? "true" : "false") << "</dep>\n";
+    xml << "    <cfg>" << (results.security.cfg ? "true" : "false") << "</cfg>\n";
+    xml << "    <rfg>" << (results.security.rfg ? "true" : "false") << "</rfg>\n";
+    xml << "    <seh>" << (results.security.seh ? "true" : "false") << "</seh>\n";
+    xml << "    <authenticode>" << (results.security.authenticode ? "true" : "false") << "</authenticode>\n";
+    xml << "  </security>\n";
+
+    // IAT
+    xml << "  <iat>\n";
+    xml << "    <found>" << (results.iatFound ? "true" : "false") << "</found>\n";
+    if (results.iatFound) {
+        xml << "    <address>" << FormatHex(results.iatAddress) << "</address>\n";
+        xml << "    <size>" << results.iatSize << "</size>\n";
+    }
+    xml << "  </iat>\n";
+
+    // Imports
+    xml << "  <imports>\n";
+    xml << "    <total>" << results.totalImports << "</total>\n";
+    xml << "    <valid>" << results.validImports << "</valid>\n";
+    xml << "    <invalid>" << results.invalidImports << "</invalid>\n";
+    xml << "    <modules count=\"" << results.modules.size() << "\">\n";
+
+    for (const auto& module : results.modules) {
+        xml << "      <module>\n";
+        xml << "        <name>" << EscapeXML(module.moduleName) << "</name>\n";
+        xml << "        <imports count=\"" << module.imports.size() << "\">\n";
+
+        for (const auto& imp : module.imports) {
+            xml << "          <import>\n";
+            xml << "            <name>" << EscapeXML(imp.name) << "</name>\n";
+            xml << "            <address>" << FormatHex(imp.address) << "</address>\n";
+            xml << "            <valid>" << (imp.valid ? "true" : "false") << "</valid>\n";
+            xml << "            <suspicious>" << (imp.suspicious ? "true" : "false") << "</suspicious>\n";
+            xml << "          </import>\n";
+        }
+
+        xml << "        </imports>\n";
+        xml << "      </module>\n";
+    }
+
+    xml << "    </modules>\n";
+    xml << "  </imports>\n";
+
+    // Suspicious indicators
+    xml << "  <suspicious>\n";
+    xml << "    <risk_score>" << results.suspicious.riskScore << "</risk_score>\n";
+    xml << "    <packed_sections>" << (results.suspicious.hasPackedSections ? "true" : "false") << "</packed_sections>\n";
+    xml << "    <suspicious_imports>" << (results.suspicious.hasSuspiciousImports ? "true" : "false") << "</suspicious_imports>\n";
+    xml << "    <suspicious_entropy>" << (results.suspicious.hasSuspiciousEntropy ? "true" : "false") << "</suspicious_entropy>\n";
+    xml << "    <suspicious_apis count=\"" << results.suspicious.suspiciousAPIs.size() << "\">\n";
+
+    for (const auto& api : results.suspicious.suspiciousAPIs) {
+        xml << "      <api>" << EscapeXML(api) << "</api>\n";
+    }
+
+    xml << "    </suspicious_apis>\n";
+    xml << "  </suspicious>\n";
 
     xml << "</analysis>\n";
 

@@ -79,6 +79,32 @@ std::wstring StringToWString(const std::string& str) {
     }
 }
 
+std::string EscapeXML(const std::string& str) {
+    std::string escaped;
+    escaped.reserve(str.size());
+
+    for (char c : str) {
+        switch (c) {
+            case '&':  escaped += "&amp;";  break;
+            case '<':  escaped += "&lt;";   break;
+            case '>':  escaped += "&gt;";   break;
+            case '"':  escaped += "&quot;"; break;
+            case '\'': escaped += "&apos;"; break;
+            default:
+                // Only include valid XML characters
+                if (c >= 0x20 || c == 0x09 || c == 0x0A || c == 0x0D) {
+                    escaped += c;
+                } else {
+                    // Replace invalid control characters with space
+                    escaped += ' ';
+                }
+                break;
+        }
+    }
+
+    return escaped;
+}
+
 // Progress Bar Implementation
 ProgressBar::ProgressBar(size_t total, const std::string& prefix)
     : m_total(total)

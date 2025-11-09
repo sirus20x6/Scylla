@@ -209,6 +209,7 @@ std::string FormatSize(uint64_t bytes);
 std::string FormatFlags(uint32_t flags);
 std::string WStringToString(const std::wstring& wstr);
 std::wstring StringToWString(const std::string& str);
+std::string EscapeXML(const std::string& str);
 
 // Progress indicator
 class ProgressBar {
