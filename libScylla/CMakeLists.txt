@@ -61,6 +61,8 @@ set(LIBSCYLLA_ENHANCED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/PackerDetector.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SecurityAnalyzer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SecurityAnalyzer.cpp
 )
 
 set(LIBSCYLLA_CORE_HEADERS
@@ -167,6 +169,8 @@ foreach(target ScyllaLib ScyllaLibStatic)
                 psapi
                 dbghelp
                 shlwapi
+                wintrust
+                imagehlp
             )
         elseif(UNIX)
             # For Linux/macOS we'll need to implement process access differently
