@@ -2,7 +2,7 @@
 
 Configuration::Configuration(const WCHAR* name, Type type)
 {
-	wcscpy_s(this->name, name);
+	wcscpy_s(this->name, CONFIG_NAME_LENGTH, name);
 	this->type = type;
 	valueNumeric = 0;
 	valueString[0] = L'\0';
@@ -35,7 +35,7 @@ const WCHAR* Configuration::getString() const
 
 void Configuration::setString(const WCHAR* str)
 {
-	wcsncpy_s(valueString, str, _countof(valueString));
+	wcsncpy_s(valueString, CONFIG_STRING_LENGTH, str, _countof(valueString));
 }
 
 bool Configuration::getBool() const

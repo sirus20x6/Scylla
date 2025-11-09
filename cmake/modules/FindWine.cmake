@@ -73,47 +73,47 @@ set(WINE_LIBRARY_SEARCH_PATHS
 )
 
 # Find essential Wine libraries
-# Wine libraries typically have .dll.so extension
+# Wine libraries can have .dll.so extension or be .a import libraries
 find_library(WINE_KERNEL32
-    NAMES kernel32.dll.so kernel32
+    NAMES kernel32.dll.so kernel32 libkernel32.a
     PATHS ${WINE_LIBRARY_SEARCH_PATHS}
-    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine
+    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine x86_64-windows i386-windows
 )
 
 find_library(WINE_NTDLL
-    NAMES ntdll.dll.so ntdll
+    NAMES ntdll.dll.so ntdll libntdll.a
     PATHS ${WINE_LIBRARY_SEARCH_PATHS}
-    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine
+    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine x86_64-windows i386-windows
 )
 
 find_library(WINE_ADVAPI32
-    NAMES advapi32.dll.so advapi32
+    NAMES advapi32.dll.so advapi32 libadvapi32.a
     PATHS ${WINE_LIBRARY_SEARCH_PATHS}
-    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine
+    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine x86_64-windows i386-windows
 )
 
 find_library(WINE_PSAPI
-    NAMES psapi.dll.so psapi
+    NAMES psapi.dll.so psapi libpsapi.a
     PATHS ${WINE_LIBRARY_SEARCH_PATHS}
-    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine
+    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine x86_64-windows i386-windows
 )
 
 find_library(WINE_DBGHELP
-    NAMES dbghelp.dll.so dbghelp
+    NAMES dbghelp.dll.so dbghelp libdbghelp.a
     PATHS ${WINE_LIBRARY_SEARCH_PATHS}
-    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine
+    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine x86_64-windows i386-windows
 )
 
 find_library(WINE_IMAGEHLP
-    NAMES imagehlp.dll.so imagehlp
+    NAMES imagehlp.dll.so imagehlp libimagehlp.a
     PATHS ${WINE_LIBRARY_SEARCH_PATHS}
-    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine
+    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine x86_64-windows i386-windows
 )
 
 find_library(WINE_SHLWAPI
-    NAMES shlwapi.dll.so shlwapi
+    NAMES shlwapi.dll.so shlwapi libshlwapi.a
     PATHS ${WINE_LIBRARY_SEARCH_PATHS}
-    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine
+    PATH_SUFFIXES wine x86_64-linux-gnu/wine i386-linux-gnu/wine x86_64-windows i386-windows
 )
 
 # Set include directories

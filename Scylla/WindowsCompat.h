@@ -132,6 +132,113 @@
         #define PRINTF_DWORD_PTR L"%X"
     #endif
 
+    // Processor architecture constants
+    #define PROCESSOR_ARCHITECTURE_INTEL   0
+    #define PROCESSOR_ARCHITECTURE_AMD64   9
+    #define PROCESSOR_ARCHITECTURE_ARM     5
+    #define PROCESSOR_ARCHITECTURE_ARM64   12
+
+    // System information structure
+    typedef struct _SYSTEM_INFO {
+        union {
+            DWORD dwOemId;
+            struct {
+                WORD wProcessorArchitecture;
+                WORD wReserved;
+            };
+        };
+        DWORD dwPageSize;
+        LPVOID lpMinimumApplicationAddress;
+        LPVOID lpMaximumApplicationAddress;
+        DWORD_PTR dwActiveProcessorMask;
+        DWORD dwNumberOfProcessors;
+        DWORD dwProcessorType;
+        DWORD dwAllocationGranularity;
+        WORD wProcessorLevel;
+        WORD wProcessorRevision;
+    } SYSTEM_INFO, *LPSYSTEM_INFO;
+
+    // OS Version structures
+    typedef struct _OSVERSIONINFOA {
+        DWORD dwOSVersionInfoSize;
+        DWORD dwMajorVersion;
+        DWORD dwMinorVersion;
+        DWORD dwBuildNumber;
+        DWORD dwPlatformId;
+        CHAR  szCSDVersion[128];
+    } OSVERSIONINFOA, *POSVERSIONINFOA, *LPOSVERSIONINFOA;
+
+    typedef struct _OSVERSIONINFOW {
+        DWORD dwOSVersionInfoSize;
+        DWORD dwMajorVersion;
+        DWORD dwMinorVersion;
+        DWORD dwBuildNumber;
+        DWORD dwPlatformId;
+        WCHAR szCSDVersion[128];
+    } OSVERSIONINFOW, *POSVERSIONINFOW, *LPOSVERSIONINFOW;
+
+    typedef struct _OSVERSIONINFOEXA {
+        DWORD dwOSVersionInfoSize;
+        DWORD dwMajorVersion;
+        DWORD dwMinorVersion;
+        DWORD dwBuildNumber;
+        DWORD dwPlatformId;
+        CHAR  szCSDVersion[128];
+        WORD  wServicePackMajor;
+        WORD  wServicePackMinor;
+        WORD  wSuiteMask;
+        BYTE  wProductType;
+        BYTE  wReserved;
+    } OSVERSIONINFOEXA, *POSVERSIONINFOEXA, *LPOSVERSIONINFOEXA;
+
+    typedef struct _OSVERSIONINFOEXW {
+        DWORD dwOSVersionInfoSize;
+        DWORD dwMajorVersion;
+        DWORD dwMinorVersion;
+        DWORD dwBuildNumber;
+        DWORD dwPlatformId;
+        WCHAR szCSDVersion[128];
+        WORD  wServicePackMajor;
+        WORD  wServicePackMinor;
+        WORD  wSuiteMask;
+        BYTE  wProductType;
+        BYTE  wReserved;
+    } OSVERSIONINFOEXW, *POSVERSIONINFOEXW, *LPOSVERSIONINFOEXW;
+
+    #ifdef UNICODE
+        typedef OSVERSIONINFOW OSVERSIONINFO;
+        typedef OSVERSIONINFOEXW OSVERSIONINFOEX;
+    #else
+        typedef OSVERSIONINFOA OSVERSIONINFO;
+        typedef OSVERSIONINFOEXA OSVERSIONINFOEX;
+    #endif
+
+    // Stub functions for system information
+    inline void GetSystemInfo(LPSYSTEM_INFO lpSystemInfo)
+    {
+        if (!lpSystemInfo) return;
+        memset(lpSystemInfo, 0, sizeof(SYSTEM_INFO));
+        #ifdef __x86_64__
+            lpSystemInfo->wProcessorArchitecture = PROCESSOR_ARCHITECTURE_AMD64;
+        #else
+            lpSystemInfo->wProcessorArchitecture = PROCESSOR_ARCHITECTURE_INTEL;
+        #endif
+        lpSystemInfo->dwNumberOfProcessors = 1;
+        lpSystemInfo->dwPageSize = 4096;
+    }
+
+    inline BOOL GetVersionEx(OSVERSIONINFO* lpVersionInfo)
+    {
+        if (!lpVersionInfo) return FALSE;
+        // Stub - return fake version info
+        lpVersionInfo->dwMajorVersion = 10;
+        lpVersionInfo->dwMinorVersion = 0;
+        lpVersionInfo->dwBuildNumber = 19045;
+        lpVersionInfo->dwPlatformId = 2; // VER_PLATFORM_WIN32_NT
+        wcscpy(lpVersionInfo->szCSDVersion, L"");
+        return TRUE;
+    }
+
     // PE file structures (needed for binary analysis)
     #define IMAGE_DOS_SIGNATURE                 0x5A4D      // MZ
     #define IMAGE_NT_SIGNATURE                  0x00004550  // PE00
@@ -458,21 +565,6 @@
         // Return 0 to indicate failure
         return 0;
     }
-
-    // System information structure
-    typedef struct _SYSTEM_INFO {
-        WORD wProcessorArchitecture;
-        WORD wReserved;
-        DWORD dwPageSize;
-        LPVOID lpMinimumApplicationAddress;
-        LPVOID lpMaximumApplicationAddress;
-        DWORD_PTR dwActiveProcessorMask;
-        DWORD dwNumberOfProcessors;
-        DWORD dwProcessorType;
-        DWORD dwAllocationGranularity;
-        WORD wProcessorLevel;
-        WORD wProcessorRevision;
-    } SYSTEM_INFO, *LPSYSTEM_INFO;
 
     // Module and procedure address functions - stubs for non-Windows
     inline HANDLE GetCurrentProcess()
@@ -889,5 +981,27 @@
     #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
     #endif
+
+    inline errno_t strncpy_s(char* dest, size_t destSize, const char* src, size_t count)
+    {
+        if (!dest || !src) return EINVAL;
+        size_t len = strlen(src);
+        size_t copyLen = (count < len) ? count : len;
+        if (copyLen >= destSize) return ERANGE;
+        strncpy(dest, src, copyLen);
+        dest[copyLen] = '\0';
+        return 0;
+    }
+
+    inline errno_t wcsncpy_s(wchar_t* dest, size_t destSize, const wchar_t* src, size_t count)
+    {
+        if (!dest || !src) return EINVAL;
+        size_t len = wcslen(src);
+        size_t copyLen = (count < len) ? count : len;
+        if (copyLen >= destSize) return ERANGE;
+        wcsncpy(dest, src, copyLen);
+        dest[copyLen] = L'\0';
+        return 0;
+    }
 
 #endif // !_WIN32
