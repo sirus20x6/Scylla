@@ -14,14 +14,18 @@
     // On non-Windows platforms, provide necessary Windows type definitions
     #include <cstdint>
     #include <cstring>
+    #include <cwchar>
+    #include <cstdlib>
 
     // Basic Windows types
     typedef uint8_t BYTE;
     typedef uint16_t WORD;
     typedef uint32_t DWORD;
     typedef int32_t LONG;
+    typedef int64_t LONGLONG;
     typedef uint64_t QWORD;
     typedef uint64_t DWORD64;
+    typedef uint64_t ULONGLONG;
     typedef int32_t NTSTATUS;
     typedef int BOOL;
     typedef unsigned long ULONG;
@@ -96,6 +100,27 @@
     #ifndef NOMINMAX
         #define NOMINMAX
     #endif
+
+    // Common Windows macros
+    #define ZeroMemory(Destination,Length) memset((Destination),0,(Length))
+    #define CopyMemory(Destination,Source,Length) memcpy((Destination),(Source),(Length))
+    #define TEXT(x) L##x
+
+    // Printf format macros for cross-platform pointer printing
+    #ifdef __LP64__
+        // 64-bit
+        #define PRINTF_DWORD_PTR_FULL_S "%016lX"
+        #define PRINTF_DWORD_PTR_HALF_S "%08lX"
+        #define PRINTF_DWORD_PTR_S "%lX"
+    #else
+        // 32-bit
+        #define PRINTF_DWORD_PTR_FULL_S "%08X"
+        #define PRINTF_DWORD_PTR_HALF_S "%08X"
+        #define PRINTF_DWORD_PTR_S "%X"
+    #endif
+    #define PRINTF_DWORD_PTR_FULL TEXT(PRINTF_DWORD_PTR_FULL_S)
+    #define PRINTF_DWORD_PTR_HALF TEXT(PRINTF_DWORD_PTR_HALF_S)
+    #define PRINTF_DWORD_PTR TEXT(PRINTF_DWORD_PTR_S)
 
     // PE file structures (needed for binary analysis)
     #define IMAGE_DOS_SIGNATURE                 0x5A4D      // MZ
@@ -344,6 +369,15 @@
     #define MEM_COMMIT             0x1000
     #define MEM_RESERVE            0x2000
     #define MEM_FREE               0x10000
+    #define MEM_IMAGE              0x1000000
+
+    // Relocation types
+    #define IMAGE_REL_BASED_ABSOLUTE              0
+    #define IMAGE_REL_BASED_HIGH                  1
+    #define IMAGE_REL_BASED_LOW                   2
+    #define IMAGE_REL_BASED_HIGHLOW               3
+    #define IMAGE_REL_BASED_HIGHADJ               4
+    #define IMAGE_REL_BASED_DIR64                 10
 
     // Invalid handle value
     #define INVALID_HANDLE_VALUE ((HANDLE)(LONG_PTR)-1)
