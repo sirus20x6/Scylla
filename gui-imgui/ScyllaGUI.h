@@ -127,6 +127,12 @@ private:
     void RenderSettings();
     void RenderAbout();
 
+    // Enhanced Visualizations
+    void RenderMemoryMap();
+    void RenderEntropyVisualization();
+    void RenderDependencyGraph();
+    void RenderStructureTree();
+
     // Helper windows
     void RenderProcessList();
     void RenderAnalysisProgress();
@@ -152,6 +158,10 @@ private:
     bool showProcessList = false;
     bool showAbout = false;
     bool showSettings = false;
+    bool showMemoryMap = false;
+    bool showEntropyViz = false;
+    bool showDependencyGraph = false;
+    bool showStructureTree = false;
 
     // Data
     std::vector<ProcessInfo> processes;
@@ -220,6 +230,38 @@ namespace UIUtils {
      * Tooltip with delay
      */
     void HelpMarker(const char* desc);
+
+    /**
+     * Draw entropy graph
+     */
+    void DrawEntropyGraph(const std::vector<float>& entropy, float width, float height);
+
+    /**
+     * Draw memory region
+     */
+    void DrawMemoryRegion(const char* label, uint64_t start, uint64_t end,
+                          float r, float g, float b, bool readable, bool writable, bool executable);
+
+    /**
+     * Draw dependency node graph
+     */
+    void DrawDependencyGraph(const std::vector<std::string>& nodes,
+                            const std::vector<std::pair<int, int>>& edges);
+
+    /**
+     * Draw tree node with icon
+     */
+    bool TreeNodeWithIcon(const char* icon, const char* label);
+
+    /**
+     * Draw hexadecimal value
+     */
+    void DrawHexValue(const char* label, uint64_t value, bool is64bit = true);
+
+    /**
+     * Draw color-coded entropy indicator
+     */
+    void DrawEntropyIndicator(float entropy);
 }
 
 } // namespace gui
