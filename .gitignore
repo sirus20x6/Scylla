@@ -2,6 +2,7 @@
 Win32/
 x64/
 ipch/
+build/
 *.opensdf
 *.sdf
 *.aps
