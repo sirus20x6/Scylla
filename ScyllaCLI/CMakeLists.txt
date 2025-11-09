@@ -1,9 +1,13 @@
 # ScyllaCLI - Cross-platform command-line interface
 cmake_minimum_required(VERSION 3.15)
 
-# CLI source file
+# CLI source files
 set(SCYLLA_CLI_SOURCES
-    cli_main.cpp
+    enhanced_cli_main.cpp
+    Commands.h
+    AnalyzeCommand.cpp
+    InfoCommand.cpp
+    Utilities.cpp
 )
 
 # Create executable
